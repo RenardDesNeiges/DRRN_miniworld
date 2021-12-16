@@ -16,8 +16,8 @@ parser.add_argument('--log-interval', type=int, default=10,
                     help='log interval, one log per n updates (default: 10)')
 parser.add_argument('--env-name', default='PongNoFrameskip-v4',
                     help='environment to train on (default: PongNoFrameskip-v4)')
-parser.add_argument('--load-dir', default='./trained_models/',
-                    help='directory to save agent logs (default: ./trained_models/)')
+parser.add_argument('--load-path', default='./trained_models/base/12432432/MiniWorld-Hallway-v0.pt',
+                    help='directory to save agent logs ')
 parser.add_argument('--add-timestep', action='store_true', default=False,
                     help='add timestep to observations')
 args = parser.parse_args()
@@ -41,7 +41,7 @@ while True:
 
 # We need to use the same statistics for normalization as used in training
 actor_critic, ob_rms = \
-            torch.load(os.path.join(args.load_dir, args.env_name + ".pt"))
+            torch.load(os.path.join(args.load_path))
 
 actor_critic.eval()
 
