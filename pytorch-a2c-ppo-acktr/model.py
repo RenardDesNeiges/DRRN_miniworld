@@ -205,7 +205,7 @@ class MidlevelBase(NNBase):
         rep = rep / 5  # normalize
         x = self.main(rep)  # (1,128）
 
-        if self.is_recurrent:g
+        if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
 
         return self.critic_linear(x), x, rnn_hxs

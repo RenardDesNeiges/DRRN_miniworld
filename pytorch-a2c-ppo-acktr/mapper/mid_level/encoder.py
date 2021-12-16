@@ -1,7 +1,7 @@
 import visualpriors
 import torch
 from torch.utils import model_zoo
-from config.config import device
+from config import device
 
 
 def mid_level_representations(input_image_tensor, representation_names):
