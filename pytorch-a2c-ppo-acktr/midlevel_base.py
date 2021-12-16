@@ -36,6 +36,8 @@ class MidlevelBase(NNBase):
         self.train()
 
     def forward(self, inputs, rnn_hxs, masks):
+        inputs = inputs.permute((0, 3, 1, 2))
+        inputs = inputs[:, :3, :, :]
         rep = []
         for feature in self.mid_level_reps:
             rep.append(visualpriors.representation_transform(inputs, feature, device=device))
