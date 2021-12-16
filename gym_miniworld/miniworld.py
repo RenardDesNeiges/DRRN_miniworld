@@ -704,6 +704,9 @@ class MiniWorldEnv(gym.Env):
         # Generate the current camera image
         obs = self.render_obs()
 
+        obs_dict = {'rgb': obs}
+        obs = obs_dict
+
         # If the maximum time step count is reached
         if self.step_count >= self.max_episode_steps:
             done = True
