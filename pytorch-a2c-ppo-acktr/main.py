@@ -19,7 +19,7 @@ from envs import make_vec_envs
 from storage import RolloutStorage
 from create_logger import create_logger,Logger_tensorboard,make_path
 import datetime
-from model_rgb import Policy
+from model import Policy
 
 args = get_args()
 
@@ -42,7 +42,7 @@ except OSError:
     for f in files:
         os.remove(f)
 tf_dir =os.path.normpath(make_path(os.path.join(
-    args.save_dir,args.policy,datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    args.save_dir,args.feature_type,datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 )))
 _ = create_logger(tf_dir)
 logger_tb = Logger_tensorboard(tf_dir, use_tensorboard=True)
@@ -72,8 +72,11 @@ def main():
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
                         args.gamma, args.log_dir, args.add_timestep, device, False)
 
-    actor_critic = Policy(envs.observation_space.shape, envs.action_space, feature_type=args.feature_type,
-        base_kwargs={'recurrent': args.recurrent_policy})
+    actor_critic = Policy(envs.observation_space.shape,
+                          envs.action_space,
+                          feature_type=args.feature_type,
+                          midlevel_rep_names=args.midlevel_rep_names,
+                          base_kwargs={'recurrent': args.recurrent_policy})
     actor_critic.to(device)
 
 
