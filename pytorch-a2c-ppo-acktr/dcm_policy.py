@@ -197,17 +197,19 @@ class DeepCognitiveMapper(NNBase):
 
     def forward(self, inputs, rnn_hxs, masks):
         #print(inputs.size())
-
-        x = (inputs / 128.0)-1
+        inputs = inputs.permute((0,3,1,2))
+        x = (inputs[:,0:3,:,:] / 128.0)-1
+        
+        egomotion = inputs[:,3,0:4,0]
         
         rep = []
         for feature in REPRESENTATION_LIST:
             rep.append(visualpriors.representation_transform(x, feature, device=DEVICE))
         x = torch.concat(rep,1) # concatenated mid level representations
-
+        
         new_map = self.decoder(x)
 
-        x = self.main((inputs / 255))
+        x = self.main((inputs[:,0:3,:,:] / 255))
         #print(x.size())
 
         if self.is_recurrent:

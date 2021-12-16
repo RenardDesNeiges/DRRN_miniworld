@@ -473,7 +473,7 @@ class MiniWorldEnv(gym.Env):
         self.observation_space = spaces.Box(
             low=0,
             high=255,
-            shape=(obs_height, obs_width, 3),
+            shape=(obs_height, obs_width, 4),
             dtype=np.uint8
         )
 
@@ -534,6 +534,7 @@ class MiniWorldEnv(gym.Env):
         Reset the simulation at the start of a new episode
         This also randomizes many environment parameters (domain randomization)
         """
+        
 
         # Step count since episode start
         self.step_count = 0
@@ -584,9 +585,11 @@ class MiniWorldEnv(gym.Env):
 
         # Pre-compile static parts of the environment into a display list
         self._render_static()
-
+        
         # Generate the first camera image
         obs = self.render_obs()
+        buffer = np.zeros((self.obs_fb.height,self.obs_fb.width,1))
+        obs = np.concatenate((obs,buffer),-1)
 
         # Return first observation
         return obs
@@ -667,7 +670,9 @@ class MiniWorldEnv(gym.Env):
         fwd_drift = self.params.sample(rand, 'forward_drift')
         turn_step = self.params.sample(rand, 'turn_step')
 
-        self.agent.pos = prev_pos
+        prev_pos = self.agent.pos
+        prev_dir = self.agent.dir
+
         
         if action == self.actions.move_forward:
             self.move_agent(fwd_step, fwd_drift)
@@ -703,14 +708,17 @@ class MiniWorldEnv(gym.Env):
             self.agent.carrying.pos = ent_pos
             self.agent.carrying.dir = self.agent.dir
             
-        egomotion = self.agent.pos - prev_pos
+        egomotion = self.agent.pos - prev_pos        
+        buffer = np.zeros((self.obs_fb.height,self.obs_fb.width,1))
+        buffer[0:3,0,0] = egomotion
+        buffer[3,0] = self.agent.dir - prev_dir
 
         # Generate the current camera image
         obs = self.render_obs()
                 
 
-        obs_dict = {'rgb': obs}
-        obs = obs_dict
+
+        obs = np.concatenate((obs,buffer),-1)
 
         # If the maximum time step count is reached
         if self.step_count >= self.max_episode_steps:
