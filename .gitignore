@@ -108,3 +108,4 @@ venv.bak/
 .mypy_cache/
 .travis.yml
 .vscode/launch.json
+trained_models/
