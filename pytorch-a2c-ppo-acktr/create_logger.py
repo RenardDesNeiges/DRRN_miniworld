@@ -18,7 +18,7 @@ def create_logger(root_out_path):
 
 def make_path(output_path):
     if not isdir(output_path):
-        os.makedirs(output_path)
+        os.makedirs(output_path, exist_ok=True)
     return output_path
 
 

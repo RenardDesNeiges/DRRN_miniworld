@@ -19,15 +19,7 @@ from envs import make_vec_envs
 from storage import RolloutStorage
 from create_logger import create_logger,Logger_tensorboard,make_path
 import datetime
-from config.config import CURRENT_POLICY
-#from visualize import visdom_plot
-if CURRENT_POLICY=="RGB":
-    from model_rgb import Policy
-elif CURRENT_POLICY=="BaselineMidLevel":
-    from model_midlevel import Policy
-else:
-    raise NotImplementedError
-
+from model_rgb import Policy
 
 args = get_args()
 
@@ -49,10 +41,11 @@ except OSError:
     files = glob.glob(os.path.join(args.log_dir, '*.monitor.csv'))
     for f in files:
         os.remove(f)
-tf_dir =os.path.normpath(make_path(os.path.join(args.save_dir,CURRENT_POLICY,datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
+tf_dir =os.path.normpath(make_path(os.path.join(
+    args.save_dir,args.policy,datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+)))
 _ = create_logger(tf_dir)
 logger_tb = Logger_tensorboard(tf_dir, use_tensorboard=True)
-
 
 
 eval_log_dir = args.log_dir + "_eval"
@@ -79,7 +72,7 @@ def main():
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
                         args.gamma, args.log_dir, args.add_timestep, device, False)
 
-    actor_critic = Policy(envs.observation_space.shape, envs.action_space,
+    actor_critic = Policy(envs.observation_space.shape, envs.action_space, feature_type=args.feature_type,
         base_kwargs={'recurrent': args.recurrent_policy})
     actor_critic.to(device)
 
