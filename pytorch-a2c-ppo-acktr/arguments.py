@@ -7,7 +7,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='RL')
     parser.add_argument('--algo', default='ppo',
                         help='algorithm to use: a2c | ppo | acktr')
-    parser.add_argument('--feature-type', default='midlevel_base',
+    parser.add_argument('--feature-type', default='drrn',
                         help='feature type to use: base | midlevel_base | actual_map_drrn | supervised_map_drrn | drrn')
     parser.add_argument('--midlevel-rep-names', default=['keypoints3d', 'depth_euclidean'])
     parser.add_argument('--lr', type=float, default=0.00005,

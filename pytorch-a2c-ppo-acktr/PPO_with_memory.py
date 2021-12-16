@@ -5,19 +5,16 @@ import time
 import types
 from collections import deque
 
-import gym
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 
 import algo
 from arguments import get_args
 from envs import make_vec_envs
-from dcm_policy import DRRNPolicy
+from policy import Policy
 from storage import RolloutStorage
-#from visualize import visdom_plot
+
+# from visualize import visdom_plot
 
 args = get_args()
 
@@ -25,7 +22,7 @@ recurrent_policy = False
 
 assert args.algo in ['a2c', 'ppo', 'acktr'], \
     'Unsupported policy specified'
-    
+
 assert args.algo in ['a2c', 'ppo'], \
     'Recurrent policy is not implemented for ACKTR'
 
@@ -64,12 +61,12 @@ def main():
     """
 
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
-                        args.gamma, args.log_dir, args.add_timestep, device, False)
+                         args.gamma, args.log_dir, args.add_timestep, device, False)
 
-    actor_critic = DRRNPolicy(envs.observation_space.shape, envs.action_space,
-        base_kwargs={'recurrent': recurrent_policy})
+    actor_critic = Policy(envs.observation_space.shape, envs.action_space,
+                          network=args.feature_type, mid_level_reps=args.midlevel_rep_names,
+                          base_kwargs={'recurrent': recurrent_policy})
     actor_critic.to(device)
-
 
     if args.algo == 'a2c':
         agent = algo.A2C_ACKTR(actor_critic, args.value_loss_coef,
@@ -79,15 +76,15 @@ def main():
     elif args.algo == 'ppo':
         agent = algo.PPO(actor_critic, args.clip_param, args.ppo_epoch, args.num_mini_batch,
                          args.value_loss_coef, args.entropy_coef, lr=args.lr,
-                               eps=args.eps,
-                               max_grad_norm=args.max_grad_norm)
+                         eps=args.eps,
+                         max_grad_norm=args.max_grad_norm)
     elif args.algo == 'acktr':
         agent = algo.A2C_ACKTR(actor_critic, args.value_loss_coef,
                                args.entropy_coef, acktr=True)
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
-                        envs.observation_space.shape, envs.action_space,
-                        actor_critic.recurrent_hidden_state_size)
+                              envs.observation_space.shape, envs.action_space,
+                              actor_critic.recurrent_hidden_state_size)
 
     obs = envs.reset()
     rollouts.obs[0].copy_(obs)
@@ -101,9 +98,9 @@ def main():
             # Sample actions
             with torch.no_grad():
                 value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
-                        rollouts.obs[step],
-                        rollouts.recurrent_hidden_states[step],
-                        rollouts.masks[step])
+                    rollouts.obs[step],
+                    rollouts.recurrent_hidden_states[step],
+                    rollouts.masks[step])
 
             # Obser reward and next obs
             obs, reward, done, infos = envs.step(action)
@@ -116,7 +113,7 @@ def main():
             """
 
             # FIXME: works only for environments with sparse rewards
-            for idx, eps_done in enumerate(done):   
+            for idx, eps_done in enumerate(done):
                 if eps_done:
                     episode_rewards.append(reward[idx])
 
@@ -158,12 +155,13 @@ def main():
 
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             end = time.time()
-            
+
             if type(episode_rewards[-1]) == torch.Tensor:
                 episode_rewards = [float(ep) for ep in episode_rewards]
-            
-            print("Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.2f}/{:.2f}, min/max reward {:.2f}/{:.2f}, success rate {:.2f}\n".
-                format(
+
+            print(
+                "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.2f}/{:.2f}, min/max reward {:.2f}/{:.2f}, success rate {:.2f}\n".
+                    format(
                     j, total_num_steps,
                     int(total_num_steps / (end - start)),
                     len(episode_rewards),
@@ -177,7 +175,7 @@ def main():
 
         if args.eval_interval is not None and len(episode_rewards) > 1 and j % args.eval_interval == 0:
             eval_envs = make_vec_envs(args.env_name, args.seed + args.num_processes, args.num_processes,
-                                args.gamma, eval_log_dir, args.add_timestep, device, True)
+                                      args.gamma, eval_log_dir, args.add_timestep, device, True)
 
             if eval_envs.venv.__class__.__name__ == "VecNormalize":
                 eval_envs.venv.ob_rms = envs.venv.ob_rms
@@ -185,7 +183,8 @@ def main():
                 # An ugly hack to remove updates
                 def _obfilt(self, obs):
                     if self.ob_rms:
-                        obs = np.clip((obs - self.ob_rms.mean) / np.sqrt(self.ob_rms.var + self.epsilon), -self.clipob, self.clipob)
+                        obs = np.clip((obs - self.ob_rms.mean) / np.sqrt(self.ob_rms.var + self.epsilon), -self.clipob,
+                                      self.clipob)
                         return obs
                     else:
                         return obs
@@ -196,7 +195,7 @@ def main():
 
             obs = eval_envs.reset()
             eval_recurrent_hidden_states = torch.zeros(args.num_processes,
-                            actor_critic.recurrent_hidden_state_size, device=device)
+                                                       actor_critic.recurrent_hidden_state_size, device=device)
             eval_masks = torch.zeros(args.num_processes, 1, device=device)
 
             while len(eval_episode_rewards) < 10:
@@ -229,6 +228,7 @@ def main():
         """
 
     envs.close()
+
 
 if __name__ == "__main__":
     main()
