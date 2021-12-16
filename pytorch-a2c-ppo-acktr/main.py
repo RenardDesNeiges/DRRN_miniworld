@@ -49,7 +49,7 @@ except OSError:
     files = glob.glob(os.path.join(args.log_dir, '*.monitor.csv'))
     for f in files:
         os.remove(f)
-tf_dir =os.path.normpath(make_path(os.path.join(args.save_dir, args.algo,datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
+tf_dir =os.path.normpath(make_path(os.path.join(args.save_dir,CURRENT_POLICY,datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
 _ = create_logger(tf_dir)
 logger_tb = Logger_tensorboard(tf_dir, use_tensorboard=True)
 

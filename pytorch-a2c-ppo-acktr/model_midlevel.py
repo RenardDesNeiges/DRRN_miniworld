@@ -169,11 +169,10 @@ class MidlevelBase(NNBase):
     def forward(self, inputs, rnn_hxs, masks):
         #print(inputs.size()) torch.Size([1, 3, 80, 60])
         #torch.Size([1, 3, 80, 60])
-        inputs = mid_level_representations(inputs, REPRESENTATION_NAMES) #torch.Size([1, 16, 5, 4])
-
-        x = inputs / 255.0
-        x = self.main(x) #(1,128）
-        #print(x.size())
+        rep = mid_level_representations(inputs, REPRESENTATION_NAMES) #torch.Size([1, 16, 5, 4])
+        #print(rep.max(),rep.min())
+        rep = rep / 5 #normalize
+        x = self.main(rep) #(1,128）
 
         if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
