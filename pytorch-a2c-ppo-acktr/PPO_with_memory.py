@@ -18,7 +18,10 @@ from storage import RolloutStorage
 
 args = get_args()
 
-recurrent_policy = False
+if args.feature_type == 'drrn':
+    recurrent_policy = True
+else:
+    recurrent_policy = False
 
 assert args.algo in ['a2c', 'ppo', 'acktr'], \
     'Unsupported policy specified'
