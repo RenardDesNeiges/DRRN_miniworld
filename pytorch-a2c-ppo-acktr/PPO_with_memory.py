@@ -64,8 +64,12 @@ def main():
                          args.gamma, args.log_dir, args.add_timestep, device, False)
 
     actor_critic = Policy(envs.observation_space.shape, envs.action_space,
-                          network=args.feature_type, mid_level_reps=args.midlevel_rep_names,
-                          base_kwargs={'recurrent': recurrent_policy})
+                          network=args.feature_type,
+                          base_kwargs={
+                              'recurrent': recurrent_policy,
+                              'mid_level_reps':args.midlevel_rep_names
+                          })
+
     actor_critic.to(device)
 
     if args.algo == 'a2c':

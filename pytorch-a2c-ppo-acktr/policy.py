@@ -2,11 +2,11 @@ import torch.nn as nn
 
 from distributions import Categorical, DiagGaussian
 from drrn_network import DeepCognitiveMapper
-from model import CNNBase, MidlevelBase, MLPBase
-
+from model import CNNBase,MLPBase
+from midlevel_base import MidlevelBase
 
 class Policy(nn.Module):
-    def __init__(self, obs_shape, action_space, network, mid_level_reps, base_kwargs=None):
+    def __init__(self, obs_shape, action_space, network, base_kwargs=None):
         super(Policy, self).__init__()
         if base_kwargs is None:
             base_kwargs = {}
@@ -15,9 +15,9 @@ class Policy(nn.Module):
             if network == "base":
                 self.base = CNNBase(obs_shape[0], **base_kwargs)
             elif network == "midlevel_base":
-                self.base = MidlevelBase(5 * 4 * 8 * len(mid_level_reps), mid_level_reps, **base_kwargs)
+                self.base = MidlevelBase(obs_shape[0], **base_kwargs)
             elif network == "drrn":
-                self.base = DeepCognitiveMapper(obs_shape[0], mid_level_reps=mid_level_reps, **base_kwargs)
+                self.base = DeepCognitiveMapper(obs_shape[0], **base_kwargs)
             else:
                 raise NotImplementedError
         elif len(obs_shape) == 1:
