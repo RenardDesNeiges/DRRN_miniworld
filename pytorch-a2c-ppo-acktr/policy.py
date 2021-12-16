@@ -2,8 +2,10 @@ import torch.nn as nn
 
 from distributions import Categorical, DiagGaussian
 from drrn_network import DeepCognitiveMapper
-from model import CNNBase,MLPBase
+from model import MLPBase
 from midlevel_base import MidlevelBase
+from rgb_base import RGBBase
+
 
 class Policy(nn.Module):
     def __init__(self, obs_shape, action_space, network, base_kwargs=None):
@@ -13,7 +15,7 @@ class Policy(nn.Module):
 
         if len(obs_shape) == 3:
             if network == "base":
-                self.base = CNNBase(obs_shape[0], **base_kwargs)
+                self.base = RGBBase(3, **base_kwargs)
             elif network == "midlevel_base":
                 self.base = MidlevelBase(obs_shape[0], **base_kwargs)
             elif network == "drrn":
