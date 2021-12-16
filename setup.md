@@ -15,3 +15,7 @@ pip install -e .
 
 to run anything on a remote server run : `PYOPENGL_PLATFORM=egl benchmark.py `.  *(to enable running without a display)*
 
+
+
+example training : `PYOPENGL_PLATFORM=egl python pytorch-a2c-ppo-acktr/main.py --algo ppo --num-frames 5000000 --num-processes 16 --num-steps 80 --lr 0.00005 --env-name MiniWorld-Hallway-v0 `.  *(to enable running without a display)*
+
