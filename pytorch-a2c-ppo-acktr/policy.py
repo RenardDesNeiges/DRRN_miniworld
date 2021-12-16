@@ -17,7 +17,7 @@ class Policy(nn.Module):
             elif network == "midlevel_base":
                 self.base = MidlevelBase(5 * 4 * 8 * len(mid_level_reps), mid_level_reps, **base_kwargs)
             elif network == "drrn":
-                self.base = DeepCognitiveMapper(obs_shape[0], **base_kwargs)
+                self.base = DeepCognitiveMapper(obs_shape[0], mid_level_reps=mid_level_reps, **base_kwargs)
             else:
                 raise NotImplementedError
         elif len(obs_shape) == 1:

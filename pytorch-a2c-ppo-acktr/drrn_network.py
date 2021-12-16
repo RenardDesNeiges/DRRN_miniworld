@@ -3,9 +3,9 @@ import visualpriors
 from torch import nn
 
 from config import device
-from model import NNBase
+from model import NNBase, Flatten
 from utils import init
-
+from torch.utils import model_zoo
 
 class DeepCognitiveMapper(NNBase):
     def __init__(self, num_inputs, mid_level_reps, recurrent=False, hidden_size=128):

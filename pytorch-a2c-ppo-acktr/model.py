@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-from mapper.mid_level.encoder import mid_level_representations
 from utils import init, init_normc_
 
 
@@ -200,6 +199,7 @@ class MidlevelBase(NNBase):
     def forward(self, inputs, rnn_hxs, masks):
         # print(inputs.size()) torch.Size([1, 3, 80, 60])
         # torch.Size([1, 3, 80, 60])
+        mid_level_representations = None
         rep = mid_level_representations(inputs, self.midlevel_rep_names)  # torch.Size([1, 16, 5, 4])
         # print(rep.max(),rep.min())
         rep = rep / 5  # normalize
