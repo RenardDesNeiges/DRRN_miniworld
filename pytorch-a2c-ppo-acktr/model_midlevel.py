@@ -1,11 +1,12 @@
+import pdb
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from distributions import Categorical, DiagGaussian
 from utils import init, init_normc_
-
-
+from mapper.mid_level.encoder import mid_level_representations
+from config.config import REPRESENTATION_NAMES
 class Flatten(nn.Module):
     def forward(self, x):
         return x.view(x.size(0), -1)
@@ -17,12 +18,7 @@ class Policy(nn.Module):
         if base_kwargs is None:
             base_kwargs = {}
 
-        if len(obs_shape) == 3:
-            self.base = CNNBase(obs_shape[0], **base_kwargs)
-        elif len(obs_shape) == 1:
-            self.base = MLPBase(obs_shape[0], **base_kwargs)
-        else:
-            raise NotImplementedError
+        self.base = MidlevelBase(obs_shape[0], **base_kwargs)
 
         if action_space.__class__.__name__ == "Discrete":
             num_outputs = action_space.n
@@ -46,6 +42,7 @@ class Policy(nn.Module):
         raise NotImplementedError
 
     def act(self, inputs, rnn_hxs, masks, deterministic=False):
+
         value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
         dist = self.dist(actor_features)
 
@@ -139,9 +136,13 @@ class Print(nn.Module):
         return x
 
 
-class CNNBase(NNBase):
+
+
+
+
+class MidlevelBase(NNBase):
     def __init__(self, num_inputs, recurrent=False, hidden_size=128):
-        super(CNNBase, self).__init__(recurrent, hidden_size, hidden_size)
+        super(MidlevelBase, self).__init__(recurrent, hidden_size, hidden_size)
 
         init_ = lambda m: init(m,
             nn.init.orthogonal_,
@@ -150,24 +151,10 @@ class CNNBase(NNBase):
 
         # For 80x60 input
         self.main = nn.Sequential(
-            init_(nn.Conv2d(num_inputs, 32, kernel_size=5, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
-            init_(nn.Conv2d(32, 32, kernel_size=5, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
-            init_(nn.Conv2d(32, 32, kernel_size=4, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
-            #Print(),
             Flatten(),
-
-            #nn.Dropout(0.2),
-
-            init_(nn.Linear(32 * 7 * 5, hidden_size)),
+            init_(nn.Linear(5*4*8*len(REPRESENTATION_NAMES), 16)),
+            nn.ReLU(),
+            init_(nn.Linear(16, hidden_size)),
             nn.ReLU()
         )
 
@@ -180,18 +167,18 @@ class CNNBase(NNBase):
         self.train()
 
     def forward(self, inputs, rnn_hxs, masks):
-        #print(inputs.size())
-
-        x = inputs / 255.0
-        #print(x.size())
-
-        x = self.main(x)
-        #print(x.size())
+        #print(inputs.size()) torch.Size([1, 3, 80, 60])
+        #torch.Size([1, 3, 80, 60])
+        rep = mid_level_representations(inputs, REPRESENTATION_NAMES) #torch.Size([1, 16, 5, 4])
+        #print(rep.max(),rep.min())
+        rep = rep / 5 #normalize
+        x = self.main(rep) #(1,128）
 
         if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
 
         return self.critic_linear(x), x, rnn_hxs
+
 
 
 class MLPBase(NNBase):
