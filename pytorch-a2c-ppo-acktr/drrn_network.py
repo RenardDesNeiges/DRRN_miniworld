@@ -98,6 +98,19 @@ class DeepCognitiveMapper(NNBase):
         update = F.grid_sample(previous_map, grid) 
         
         return update
+    
+    def combine_maps(self, previous_map, map_update, eps=1e-6):
+    
+        updated_map = previous_map
+
+        for i in range(map_update.shape[0]):
+            updated_confidence = (map_update[i, 1, :, :] + previous_map[i, 1, :, :] + eps)
+            updated_free_space_map = (map_update[i, 0, :, :] * map_update[i, 1, :, :] + previous_map[i, 0, :, :] * previous_map[i, 1, :, :]) / updated_confidence
+            updated_confidence = torch.unsqueeze(updated_confidence, dim=0)
+            updated_free_space_map = torch.unsqueeze(updated_free_space_map, dim=0)
+            updated_map[i, :, :, :] = torch.cat([updated_free_space_map, updated_confidence], dim=0)
+        
+        return updated_map
 
     def forward(self, inputs, rnn_hxs, masks):
         # print(inputs.size())
@@ -115,8 +128,8 @@ class DeepCognitiveMapper(NNBase):
         map_update = self.decoder(x)
         previous_map = rnn_hxs.reshape((1,2,32,32))
         previous_map = self.egomotion_transform(previous_map,egomotion)
-        
-        # new_map = self.combine_maps(previous_map,map_update)
+
+        new_map = self.combine_maps(previous_map,map_update)
 
         x = self.main((inputs[:, 0:3, :, :] / 255))
         # # print(x.size())
@@ -124,7 +137,22 @@ class DeepCognitiveMapper(NNBase):
         # if self.is_recurrent:
         #     x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
 
-        rnn_hs = self.flatten(map_update)
+
+        import matplotlib.pyplot as plt
+
+
+        fig, (ax1, ax2, ax3,ax4) = plt.subplots(4)
+
+        ax1.imshow(map_update.permute(2,3,1,0)[:,:,1,0])
+
+        ax2.imshow(rnn_hxs.reshape((1,2,32,32)).permute(2,3,1,0)[:,:,1,0])
+
+
+        ax3.imshow(new_map.permute(2,3,1,0)[:,:,1,0])
+        ax4.imshow(egomotion)
+
+
+        rnn_hs = self.flatten(new_map)
         return self.critic_linear(x), x, rnn_hs
 
 
