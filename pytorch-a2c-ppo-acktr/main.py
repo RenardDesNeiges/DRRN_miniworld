@@ -113,7 +113,7 @@ def main():
             """
 
             # FIXME: works only for environments with sparse rewards
-            for idx, eps_done in enumerate(done):
+            for idx, eps_done in enumerate(done):   
                 if eps_done:
                     episode_rewards.append(reward[idx])
 
@@ -155,6 +155,10 @@ def main():
 
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             end = time.time()
+            
+            if type(episode_rewards[-1]) == torch.Tensor:
+                episode_rewards = [float(ep[0]) for ep in episode_rewards]
+            
             print("Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.2f}/{:.2f}, min/max reward {:.2f}/{:.2f}, success rate {:.2f}\n".
                 format(
                     j, total_num_steps,
