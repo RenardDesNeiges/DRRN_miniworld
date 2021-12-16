@@ -15,7 +15,7 @@ import torch.optim as optim
 import algo
 from arguments import get_args
 from envs import make_vec_envs
-from dcm_policy import DeepCognitiveMapper
+from dcm_policy import DRRNPolicy
 from storage import RolloutStorage
 #from visualize import visdom_plot
 
@@ -66,7 +66,7 @@ def main():
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
                         args.gamma, args.log_dir, args.add_timestep, device, False)
 
-    actor_critic = DeepCognitiveMapper(envs.observation_space.shape, envs.action_space,
+    actor_critic = DRRNPolicy(envs.observation_space.shape, envs.action_space,
         base_kwargs={'recurrent': recurrent_policy})
     actor_critic.to(device)
 

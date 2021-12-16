@@ -5,9 +5,18 @@
 
 """
 
+REPRESENTATION_LIST = ['keypoints2d','edge_texture','autoencoding']
+DEVICE = 'cpu' #TODO : make it CUDA Compatible
+
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+import visualpriors
+import subprocess
+import torch
+import torch.utils.model_zoo
 
 from distributions import Categorical, DiagGaussian
 from utils import init, init_normc_
@@ -18,21 +27,16 @@ class Flatten(nn.Module):
         return x.view(x.size(0), -1)
 
 
-class DeepCognitiveMapper(nn.Module):
+class DRRNPolicy(nn.Module):
     def __init__(self, obs_shape, action_space, base_kwargs=None):
-        super(DeepCognitiveMapper, self).__init__()
+        super(DRRNPolicy, self).__init__()
         
         self.is_recurrent = True
         
         if base_kwargs is None:
             base_kwargs = {}
 
-        if len(obs_shape) == 3:
-            self.base = CNNBase(obs_shape[0], **base_kwargs) # encoder policy 
-        elif len(obs_shape) == 1:
-            self.base = MLPBase(obs_shape[0], **base_kwargs)
-        else:
-            raise NotImplementedError
+        self.base = DeepCognitiveMapper(obs_shape[0], **base_kwargs) # encoder policy 
 
         num_outputs = action_space.n
         self.dist = Categorical(self.base.output_size, num_outputs) # discrete action space is modelled by a finite distribution
@@ -49,6 +53,7 @@ class DeepCognitiveMapper(nn.Module):
     def act(self, inputs, rnn_hxs, masks, deterministic=False):
         value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
         dist = self.dist(actor_features)
+
 
         if deterministic:
             action = dist.mode()
@@ -140,18 +145,28 @@ class Print(nn.Module):
         return x
 
 
-class CNNBase(NNBase):
+class DeepCognitiveMapper(NNBase):
     def __init__(self, num_inputs, recurrent=False, hidden_size=128):
-        super(CNNBase, self).__init__(recurrent, hidden_size, hidden_size)
+        super(DeepCognitiveMapper, self).__init__(recurrent, hidden_size, hidden_size)
 
         init_ = lambda m: init(m,
             nn.init.orthogonal_,
             lambda x: nn.init.constant_(x, 0),
             nn.init.calculate_gain('relu'))
+        
+        self.decoder = nn.Sequential(
+            nn.BatchNorm2d(24),
+            nn.ConvTranspose2d(24, 16, 2, stride=2),
+            nn.ReLU(),
+            nn.ConvTranspose2d(16, 8, 2,padding=(1,0), stride=2),
+            nn.ReLU(),
+            nn.ConvTranspose2d(8, 2, 2, padding=(2,0) , stride=2),
+            nn.Sigmoid(),
+        )
 
         # For 80x60 input
         self.main = nn.Sequential(
-            init_(nn.Conv2d(num_inputs, 32, kernel_size=5, stride=2)),
+            init_(nn.Conv2d(8*len(REPRESENTATION_LIST), 32, kernel_size=5, stride=2)),
             nn.BatchNorm2d(32),
             nn.ReLU(),
 
@@ -183,8 +198,14 @@ class CNNBase(NNBase):
     def forward(self, inputs, rnn_hxs, masks):
         #print(inputs.size())
 
-        x = inputs / 255.0
-        #print(x.size())
+        x = (inputs / 128.0)-1
+        
+        rep = []
+        for feature in REPRESENTATION_LIST:
+            rep.append(visualpriors.representation_transform(x, feature, device=DEVICE))
+        x = torch.concat(rep,1) # concatenated mid level representations
+
+        new_map = self.decoder(x)
 
         x = self.main(x)
         #print(x.size())
