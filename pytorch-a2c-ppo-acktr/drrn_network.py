@@ -3,14 +3,14 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils import model_zoo
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 import visualpriors
 
-from config import device, MAP_SIZE, MAP_DIMENSIONS
+from config import device, MAP_SIZE, MAP_DIMENSIONS, DEBUG
 from model import NNBase, Flatten
 from utils import init
-
 
 import numpy as np
 from matplotlib.transforms import Affine2D
@@ -138,18 +138,14 @@ class DeepCognitiveMapper(NNBase):
         #     x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
 
 
-        import matplotlib.pyplot as plt
 
 
-        fig, (ax1, ax2, ax3,ax4) = plt.subplots(4)
-
-        ax1.imshow(map_update.permute(2,3,1,0)[:,:,1,0])
-
-        ax2.imshow(rnn_hxs.reshape((1,2,32,32)).permute(2,3,1,0)[:,:,1,0])
-
-
-        ax3.imshow(new_map.permute(2,3,1,0)[:,:,1,0])
-        ax4.imshow(egomotion)
+        if DEBUG:
+            fig, (ax1, ax2, ax3,ax4) = plt.subplots(4)
+            ax1.imshow(map_update.permute(2,3,1,0)[:,:,1,0])
+            ax2.imshow(rnn_hxs.reshape((1,2,32,32)).permute(2,3,1,0)[:,:,1,0])
+            ax3.imshow(new_map.permute(2,3,1,0)[:,:,1,0])
+            ax4.imshow(egomotion)
 
 
         rnn_hs = self.flatten(new_map)
