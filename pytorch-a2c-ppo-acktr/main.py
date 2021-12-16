@@ -1,6 +1,7 @@
 import copy
 import glob
 import os
+import pdb
 import time
 import types
 from collections import deque
@@ -29,26 +30,12 @@ torch.manual_seed(args.seed)
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
-try:
-    os.makedirs(args.log_dir)
-except OSError:
-    files = glob.glob(os.path.join(args.log_dir, '*.monitor.csv'))
-    for f in files:
-        os.remove(f)
-
 tf_dir =os.path.normpath(
-    make_path(os.path.join("../", args.save_dir, args.feature_type,datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
+    make_path(os.path.join("../trained_models", args.feature_type,datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
 _ = create_logger(tf_dir)
 logger_tb = Logger_tensorboard(tf_dir, use_tensorboard=True)
 
-eval_log_dir = args.log_dir + "_eval"
-
-try:
-    os.makedirs(eval_log_dir)
-except OSError:
-    files = glob.glob(os.path.join(eval_log_dir, '*.monitor.csv'))
-    for f in files:
-        os.remove(f)
+eval_log_dir = tf_dir + "_eval"
 
 
 def main():
@@ -63,7 +50,7 @@ def main():
     """
 
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
-                         args.gamma, args.log_dir, args.add_timestep, device, False)
+                         args.gamma, tf_dir, args.add_timestep, device, False)
 
     actor_critic = Policy(envs.observation_space.shape, envs.action_space,
                           network=args.feature_type,
@@ -129,11 +116,10 @@ def main():
 
         rollouts.after_update()
 
-        if j % args.save_interval == 0 and args.save_dir != "":
+        if j % args.save_interval == 0:
             print('Saving model')
-            print()
 
-            save_path = os.path.join(args.save_dir, args.algo)
+            save_path = tf_dir
             try:
                 os.makedirs(save_path)
             except OSError:
@@ -145,8 +131,7 @@ def main():
                 save_model = copy.deepcopy(actor_critic).cpu()
 
             save_model = [save_model, hasattr(envs.venv, 'ob_rms') and envs.venv.ob_rms or None]
-
-            torch.save(save_model, os.path.join(save_path, args.env_name + ".pt"))
+            torch.save(save_model, os.path.join(save_path, args.env_name+"_step_"+str(j) + ".pt"))
 
         total_num_steps = (j + 1) * args.num_processes * args.num_steps
 

@@ -7,7 +7,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='RL')
     parser.add_argument('--algo', default='ppo',
                         help='algorithm to use: a2c | ppo | acktr')
-    parser.add_argument('--feature-type', default='drrn',
+    parser.add_argument('--feature-type', default='base',
                         help='feature type to use: base | midlevel_base | actual_map_drrn | supervised_map_drrn | drrn')
     parser.add_argument('--midlevel-rep-names', default=['keypoints2d','edge_texture','autoencoding'])
     parser.add_argument('--lr', type=float, default=0.00005,
@@ -52,10 +52,6 @@ def get_args():
                         help='number of frames to train (default: 10e6)')
     parser.add_argument('--env-name', default='PongNoFrameskip-v4',
                         help='environment to train on (default: PongNoFrameskip-v4)')
-    parser.add_argument('--log-dir', default='/tmp/gym/',
-                        help='directory to save agent logs (default: /tmp/gym)')
-    parser.add_argument('--save-dir', default='./trained_models/',
-                        help='directory to save agent logs (default: ./trained_models/)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
     parser.add_argument('--add-timestep', action='store_true', default=False,
