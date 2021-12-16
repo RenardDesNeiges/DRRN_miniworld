@@ -174,7 +174,7 @@ class MLPBase(NNBase):
 class MidlevelBase(NNBase):
     def __init__(self, num_inputs, midlevel_rep_names, recurrent=False, hidden_size=128):
         super(MidlevelBase, self).__init__(recurrent, hidden_size, hidden_size)
-
+        self.midlevel_rep_names = midlevel_rep_names
         init_ = lambda m: init(m,
                                nn.init.orthogonal_,
                                lambda x: nn.init.constant_(x, 0),
@@ -205,7 +205,7 @@ class MidlevelBase(NNBase):
         rep = rep / 5  # normalize
         x = self.main(rep)  # (1,128）
 
-        if self.is_recurrent:
+        if self.is_recurrent:g
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
 
         return self.critic_linear(x), x, rnn_hxs
