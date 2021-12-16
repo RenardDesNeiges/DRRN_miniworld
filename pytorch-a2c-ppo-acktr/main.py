@@ -1,17 +1,12 @@
 import copy
 import glob
 import os
-import pdb
 import time
 import types
 from collections import deque
 import logging
-import gym
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 
 import algo
 from arguments import get_args
@@ -19,7 +14,7 @@ from envs import make_vec_envs
 from storage import RolloutStorage
 from create_logger import create_logger,Logger_tensorboard,make_path
 import datetime
-from model import Policy
+from policy import Policy
 
 args = get_args()
 
@@ -74,8 +69,8 @@ def main():
 
     actor_critic = Policy(envs.observation_space.shape,
                           envs.action_space,
-                          feature_type=args.feature_type,
-                          midlevel_rep_names=args.midlevel_rep_names,
+                          network=args.feature_type,
+                          mid_level_reps=args.midlevel_rep_names,
                           base_kwargs={'recurrent': args.recurrent_policy})
     actor_critic.to(device)
 

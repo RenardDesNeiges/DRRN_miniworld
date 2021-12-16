@@ -1,83 +1,13 @@
-import pdb
-
 import torch
 import torch.nn as nn
+
 from mapper.mid_level.encoder import mid_level_representations
-from config.config import REPRESENTATION_NAMES
-from distributions import Categorical, DiagGaussian
 from utils import init, init_normc_
 
 
 class Flatten(nn.Module):
     def forward(self, x):
         return x.view(x.size(0), -1)
-
-
-class Policy(nn.Module):
-    def __init__(self, obs_shape, action_space, feature_type,midlevel_rep_names, base_kwargs=None):
-        super(Policy, self).__init__()
-        if base_kwargs is None:
-            base_kwargs = {}
-
-        if len(obs_shape) == 3 :
-            if feature_type == "base":
-                self.base = CNNBase(obs_shape[0], **base_kwargs)
-            elif feature_type == "midlevel_base":
-                self.base = MidlevelBase(5*4*8*len(midlevel_rep_names),midlevel_rep_names, **base_kwargs)
-            else:
-                raise NotImplementedError
-        elif len(obs_shape) == 1:
-            self.base = MLPBase(obs_shape[0], **base_kwargs)
-        else:
-            raise NotImplementedError
-
-        if action_space.__class__.__name__ == "Discrete":
-            num_outputs = action_space.n
-            self.dist = Categorical(self.base.output_size, num_outputs)
-        elif action_space.__class__.__name__ == "Box":
-            num_outputs = action_space.shape[0]
-            self.dist = DiagGaussian(self.base.output_size, num_outputs)
-        else:
-            raise NotImplementedError
-
-    @property
-    def is_recurrent(self):
-        return self.base.is_recurrent
-
-    @property
-    def recurrent_hidden_state_size(self):
-        """Size of rnn_hx."""
-        return self.base.recurrent_hidden_state_size
-
-    def forward(self, inputs, rnn_hxs, masks):
-        raise NotImplementedError
-
-    def act(self, inputs, rnn_hxs, masks, deterministic=False):
-        value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
-        dist = self.dist(actor_features)
-
-        if deterministic:
-            action = dist.mode()
-        else:
-            action = dist.sample()
-
-        action_log_probs = dist.log_probs(action)
-        dist_entropy = dist.entropy().mean()
-
-        return value, action, action_log_probs, rnn_hxs
-
-    def get_value(self, inputs, rnn_hxs, masks):
-        value, _, _ = self.base(inputs, rnn_hxs, masks)
-        return value
-
-    def evaluate_actions(self, inputs, rnn_hxs, masks, action):
-        value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
-        dist = self.dist(actor_features)
-
-        action_log_probs = dist.log_probs(action)
-        dist_entropy = dist.entropy().mean()
-
-        return value, action_log_probs, dist_entropy, rnn_hxs
 
 
 class NNBase(nn.Module):
@@ -151,9 +81,9 @@ class CNNBase(NNBase):
         super(CNNBase, self).__init__(recurrent, hidden_size, hidden_size)
 
         init_ = lambda m: init(m,
-            nn.init.orthogonal_,
-            lambda x: nn.init.constant_(x, 0),
-            nn.init.calculate_gain('relu'))
+                               nn.init.orthogonal_,
+                               lambda x: nn.init.constant_(x, 0),
+                               nn.init.calculate_gain('relu'))
 
         # For 80x60 input
         self.main = nn.Sequential(
@@ -169,30 +99,30 @@ class CNNBase(NNBase):
             nn.BatchNorm2d(32),
             nn.ReLU(),
 
-            #Print(),
+            # Print(),
             Flatten(),
 
-            #nn.Dropout(0.2),
+            # nn.Dropout(0.2),
 
             init_(nn.Linear(32 * 7 * 5, hidden_size)),
             nn.ReLU()
         )
 
         init_ = lambda m: init(m,
-            nn.init.orthogonal_,
-            lambda x: nn.init.constant_(x, 0))
+                               nn.init.orthogonal_,
+                               lambda x: nn.init.constant_(x, 0))
 
         self.critic_linear = init_(nn.Linear(hidden_size, 1))
 
         self.train()
 
     def forward(self, inputs, rnn_hxs, masks):
-        #print(inputs.size()) torch.Size([1, 12, 80, 60])
+        # print(inputs.size()) torch.Size([1, 12, 80, 60])
         x = inputs / 255.0
-        #print(x.size())
+        # print(x.size())
 
         x = self.main(x)
-        #print(x.size())
+        # print(x.size())
 
         if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
@@ -208,8 +138,8 @@ class MLPBase(NNBase):
             num_inputs = hidden_size
 
         init_ = lambda m: init(m,
-            init_normc_,
-            lambda x: nn.init.constant_(x, 0))
+                               init_normc_,
+                               lambda x: nn.init.constant_(x, 0))
 
         self.actor = nn.Sequential(
             init_(nn.Linear(num_inputs, hidden_size)),
@@ -241,15 +171,14 @@ class MLPBase(NNBase):
         return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs
 
 
-
 class MidlevelBase(NNBase):
-    def __init__(self,num_inputs, midlevel_rep_names,recurrent=False, hidden_size=128):
+    def __init__(self, num_inputs, midlevel_rep_names, recurrent=False, hidden_size=128):
         super(MidlevelBase, self).__init__(recurrent, hidden_size, hidden_size)
 
         init_ = lambda m: init(m,
-            nn.init.orthogonal_,
-            lambda x: nn.init.constant_(x, 0),
-            nn.init.calculate_gain('relu'))
+                               nn.init.orthogonal_,
+                               lambda x: nn.init.constant_(x, 0),
+                               nn.init.calculate_gain('relu'))
 
         # For 80x60 input
         self.main = nn.Sequential(
@@ -261,20 +190,20 @@ class MidlevelBase(NNBase):
         )
 
         init_ = lambda m: init(m,
-            nn.init.orthogonal_,
-            lambda x: nn.init.constant_(x, 0))
+                               nn.init.orthogonal_,
+                               lambda x: nn.init.constant_(x, 0))
 
         self.critic_linear = init_(nn.Linear(hidden_size, 1))
 
         self.train()
 
     def forward(self, inputs, rnn_hxs, masks):
-        #print(inputs.size()) torch.Size([1, 3, 80, 60])
-        #torch.Size([1, 3, 80, 60])
-        rep = mid_level_representations(inputs, self.midlevel_rep_names) #torch.Size([1, 16, 5, 4])
-        #print(rep.max(),rep.min())
-        rep = rep / 5 #normalize
-        x = self.main(rep) #(1,128）
+        # print(inputs.size()) torch.Size([1, 3, 80, 60])
+        # torch.Size([1, 3, 80, 60])
+        rep = mid_level_representations(inputs, self.midlevel_rep_names)  # torch.Size([1, 16, 5, 4])
+        # print(rep.max(),rep.min())
+        rep = rep / 5  # normalize
+        x = self.main(rep)  # (1,128）
 
         if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
