@@ -1,3 +1,5 @@
+import pdb
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,13 +14,18 @@ class Flatten(nn.Module):
 
 
 class Policy(nn.Module):
-    def __init__(self, obs_shape, action_space, base_kwargs=None):
+    def __init__(self, obs_shape, action_space, feature_type, base_kwargs=None):
         super(Policy, self).__init__()
         if base_kwargs is None:
             base_kwargs = {}
 
-        if len(obs_shape) == 3:
-            self.base = CNNBase(obs_shape[0], **base_kwargs)
+        if len(obs_shape) == 3 :
+            if feature_type == "rgb":
+                self.base = CNNBase(obs_shape[0], **base_kwargs)
+            elif feature_type == "midlevel":
+                self.base = MidlevelBase(obs_shape[0], **base_kwargs)
+            else:
+                raise NotImplementedError
         elif len(obs_shape) == 1:
             self.base = MLPBase(obs_shape[0], **base_kwargs)
         else:
@@ -180,8 +187,66 @@ class CNNBase(NNBase):
         self.train()
 
     def forward(self, inputs, rnn_hxs, masks):
-        #print(inputs.size())
+        #print(inputs.size()) torch.Size([1, 12, 80, 60])
+        x = inputs / 255.0
+        #print(x.size())
 
+        x = self.main(x)
+        #print(x.size())
+
+        if self.is_recurrent:
+            x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
+
+        return self.critic_linear(x), x, rnn_hxs
+
+
+
+
+
+
+class MidlevelBase(NNBase):
+    def __init__(self, num_inputs, recurrent=False, hidden_size=128):
+        super(MidlevelBase, self).__init__(recurrent, hidden_size, hidden_size)
+
+        init_ = lambda m: init(m,
+            nn.init.orthogonal_,
+            lambda x: nn.init.constant_(x, 0),
+            nn.init.calculate_gain('relu'))
+
+        # For 80x60 input
+        self.main = nn.Sequential(
+            init_(nn.Conv2d(num_inputs, 32, kernel_size=5, stride=2)),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+
+            init_(nn.Conv2d(32, 32, kernel_size=5, stride=2)),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+
+            init_(nn.Conv2d(32, 32, kernel_size=4, stride=2)),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+
+            #Print(),
+            Flatten(),
+
+            #nn.Dropout(0.2),
+
+            init_(nn.Linear(32 * 7 * 5, hidden_size)),
+            nn.ReLU()
+        )
+
+        init_ = lambda m: init(m,
+            nn.init.orthogonal_,
+            lambda x: nn.init.constant_(x, 0))
+
+        self.critic_linear = init_(nn.Linear(hidden_size, 1))
+
+        self.train()
+
+    def forward(self, inputs, rnn_hxs, masks):
+        pdb.set_trace()
+        #print(inputs.size()) torch.Size([1, 12, 80, 60])
         x = inputs / 255.0
         #print(x.size())
 
