@@ -1,10 +1,11 @@
 import copy
 import glob
 import os
+import pdb
 import time
 import types
 from collections import deque
-
+import logging
 import gym
 import numpy as np
 import torch
@@ -17,6 +18,8 @@ from arguments import get_args
 from envs import make_vec_envs
 from model import Policy
 from storage import RolloutStorage
+from create_logger import create_logger,Logger_tensorboard,make_path
+import datetime
 #from visualize import visdom_plot
 
 args = get_args()
@@ -38,6 +41,11 @@ except OSError:
     files = glob.glob(os.path.join(args.log_dir, '*.monitor.csv'))
     for f in files:
         os.remove(f)
+tf_dir =os.path.normpath(make_path(os.path.join(args.save_dir, args.algo,datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
+_ = create_logger(tf_dir)
+logger_tb = Logger_tensorboard(tf_dir, use_tensorboard=True)
+
+
 
 eval_log_dir = args.log_dir + "_eval"
 
@@ -87,7 +95,10 @@ def main():
                         actor_critic.recurrent_hidden_state_size)
 
     obs = envs.reset()
-    rollouts.obs[0].copy_(obs)
+    pdb.set_trace()
+    import matplotlib.pyplot as plt
+    plt.imshow(obs)
+    rollouts.obs[0].copy_(obs) #torch.Size([1, 12, 80, 60])
     rollouts.to(device)
 
     episode_rewards = deque(maxlen=100)
@@ -113,7 +124,7 @@ def main():
             """
 
             # FIXME: works only for environments with sparse rewards
-            for idx, eps_done in enumerate(done):   
+            for idx, eps_done in enumerate(done):
                 if eps_done:
                     episode_rewards.append(reward[idx])
 
@@ -155,12 +166,8 @@ def main():
 
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             end = time.time()
-            
-            if type(episode_rewards[-1]) == torch.Tensor:
-                episode_rewards = [float(ep[0]) for ep in episode_rewards]
-            
-            print("Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.2f}/{:.2f}, min/max reward {:.2f}/{:.2f}, success rate {:.2f}\n".
-                format(
+            message="Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.2f}/{:.2f}, " \
+                    "min/max reward {:.2f}/{:.2f}, success rate {:.2f}\n".format(
                     j, total_num_steps,
                     int(total_num_steps / (end - start)),
                     len(episode_rewards),
@@ -170,7 +177,9 @@ def main():
                     np.max(episode_rewards),
                     np.count_nonzero(np.greater(episode_rewards, 0)) / len(episode_rewards)
                 )
-            )
+            logging.info(message)
+            print(message)
+            logger_tb.add_losses({'mean reward ': np.mean(episode_rewards)}, total_num_steps)
 
         if args.eval_interval is not None and len(episode_rewards) > 1 and j % args.eval_interval == 0:
             eval_envs = make_vec_envs(args.env_name, args.seed + args.num_processes, args.num_processes,
