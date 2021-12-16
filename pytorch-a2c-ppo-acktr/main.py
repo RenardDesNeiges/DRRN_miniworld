@@ -164,7 +164,7 @@ def main():
             print(message)
             logger_tb.add_losses({'mean reward ': np.mean(episode_rewards),
                                   " success rate":np.count_nonzero(np.greater(episode_rewards, 0)) / len(episode_rewards)
-                                  }, total_num_steps)g
+                                  }, total_num_steps)
 
         if args.eval_interval is not None and len(episode_rewards) > 1 and j % args.eval_interval == 0:
             eval_envs = make_vec_envs(args.env_name, args.seed + args.num_processes, args.num_processes,
