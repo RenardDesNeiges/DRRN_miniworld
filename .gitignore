@@ -109,3 +109,4 @@ venv.bak/
 verify_env_priors.ipynb
 .travis.yml
 research/
+.vscode/launch.json
