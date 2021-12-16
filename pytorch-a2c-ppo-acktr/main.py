@@ -13,6 +13,9 @@ from arguments import get_args
 from envs import make_vec_envs
 from policy import Policy
 from storage import RolloutStorage
+from create_logger import create_logger,Logger_tensorboard,make_path
+import datetime
+import logging
 
 args = get_args()
 
@@ -32,6 +35,11 @@ except OSError:
     files = glob.glob(os.path.join(args.log_dir, '*.monitor.csv'))
     for f in files:
         os.remove(f)
+
+tf_dir =os.path.normpath(
+    make_path(os.path.join("../", args.save_dir, args.feature_type,datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
+_ = create_logger(tf_dir)
+logger_tb = Logger_tensorboard(tf_dir, use_tensorboard=True)
 
 eval_log_dir = args.log_dir + "_eval"
 
@@ -148,9 +156,8 @@ def main():
             if type(episode_rewards[-1]) == torch.Tensor:
                 episode_rewards = [float(ep) for ep in episode_rewards]
 
-            print(
-                "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.2f}/{:.2f}, min/max reward {:.2f}/{:.2f}, success rate {:.2f}\n".
-                    format(
+            message="Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.2f}/{:.2f}, " \
+                    "min/max reward {:.2f}/{:.2f}, success rate {:.2f}\n".format(
                     j, total_num_steps,
                     int(total_num_steps / (end - start)),
                     len(episode_rewards),
@@ -160,7 +167,11 @@ def main():
                     np.max(episode_rewards),
                     np.count_nonzero(np.greater(episode_rewards, 0)) / len(episode_rewards)
                 )
-            )
+            logging.info(message)
+            print(message)
+            logger_tb.add_losses({'mean reward ': np.mean(episode_rewards),
+                                  " success rate":np.count_nonzero(np.greater(episode_rewards, 0)) / len(episode_rewards)
+                                  }, total_num_steps)
 
         if args.eval_interval is not None and len(episode_rewards) > 1 and j % args.eval_interval == 0:
             eval_envs = make_vec_envs(args.env_name, args.seed + args.num_processes, args.num_processes,
