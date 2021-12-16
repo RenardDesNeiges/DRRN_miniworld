@@ -155,8 +155,8 @@ class DeepCognitiveMapper(NNBase):
             nn.init.calculate_gain('relu'))
         
         self.decoder = nn.Sequential(
-            nn.BatchNorm2d(24),
-            nn.ConvTranspose2d(24, 16, 2, stride=2),
+            nn.BatchNorm2d(8*len(REPRESENTATION_LIST)),
+            nn.ConvTranspose2d(8*len(REPRESENTATION_LIST), 16, 2, stride=2),
             nn.ReLU(),
             nn.ConvTranspose2d(16, 8, 2,padding=(1,0), stride=2),
             nn.ReLU(),
@@ -166,7 +166,7 @@ class DeepCognitiveMapper(NNBase):
 
         # For 80x60 input
         self.main = nn.Sequential(
-            init_(nn.Conv2d(8*len(REPRESENTATION_LIST), 32, kernel_size=5, stride=2)),
+            init_(nn.Conv2d(3, 32, kernel_size=5, stride=2)),
             nn.BatchNorm2d(32),
             nn.ReLU(),
 
@@ -207,7 +207,7 @@ class DeepCognitiveMapper(NNBase):
 
         new_map = self.decoder(x)
 
-        x = self.main(x)
+        x = self.main((inputs / 255))
         #print(x.size())
 
         if self.is_recurrent:

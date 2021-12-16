@@ -667,6 +667,8 @@ class MiniWorldEnv(gym.Env):
         fwd_drift = self.params.sample(rand, 'forward_drift')
         turn_step = self.params.sample(rand, 'turn_step')
 
+        self.agent.pos = prev_pos
+        
         if action == self.actions.move_forward:
             self.move_agent(fwd_step, fwd_drift)
 
@@ -700,9 +702,12 @@ class MiniWorldEnv(gym.Env):
             ent_pos = self._get_carry_pos(self.agent.pos, self.agent.carrying)
             self.agent.carrying.pos = ent_pos
             self.agent.carrying.dir = self.agent.dir
+            
+        egomotion = self.agent.pos - prev_pos
 
         # Generate the current camera image
         obs = self.render_obs()
+                
 
         # If the maximum time step count is reached
         if self.step_count >= self.max_episode_steps:

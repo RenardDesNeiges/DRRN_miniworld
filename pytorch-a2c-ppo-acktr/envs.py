@@ -65,9 +65,9 @@ def make_vec_envs(env_name, seed, num_processes, gamma, log_dir, add_timestep, d
     envs = VecPyTorch(envs, device)
 
     # if len(envs.observation_space.shape) == 3:
-        # print('Creating frame stacking wrapper')
-        # envs = VecPyTorchFrameStack(envs, 4, device)
-        #print(envs.observation_space)
+    #     print('Creating frame stacking wrapper')
+    #     envs = VecPyTorchFrameStack(envs, 4, device)
+    #     print(envs.observation_space)
 
     return envs
 
