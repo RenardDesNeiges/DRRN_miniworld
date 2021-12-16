@@ -16,13 +16,21 @@ import torch.optim as optim
 import algo
 from arguments import get_args
 from envs import make_vec_envs
-from model import Policy
 from storage import RolloutStorage
 from create_logger import create_logger,Logger_tensorboard,make_path
 import datetime
+from config.config import CURRENT_POLICY
 #from visualize import visdom_plot
+if CURRENT_POLICY=="RGB":
+    from model_rgb import Policy
+elif CURRENT_POLICY=="BaselineMidLevel":
+    from model_midlevel import Policy
+else:
+    raise NotImplementedError
+
 
 args = get_args()
+
 
 assert args.algo in ['a2c', 'ppo', 'acktr']
 if args.recurrent_policy:
@@ -95,9 +103,6 @@ def main():
                         actor_critic.recurrent_hidden_state_size)
 
     obs = envs.reset()
-    pdb.set_trace()
-    import matplotlib.pyplot as plt
-    plt.imshow(obs)
     rollouts.obs[0].copy_(obs) #torch.Size([1, 12, 80, 60])
     rollouts.to(device)
 
