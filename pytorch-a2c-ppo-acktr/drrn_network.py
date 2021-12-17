@@ -40,17 +40,17 @@ class DeepCognitiveMapper(NNBase):
         ).to(device=device)
 
         # For 80x60 input
-        self.main = nn.Sequential(
-            # init_(nn.Conv2d(2, 4, kernel_size=5, stride=1)),
-            # nn.BatchNorm2d(4),
-            # nn.ReLU(),
-            # init_(nn.Conv2d(4, 8, kernel_size=5, stride=1)),
-            # nn.BatchNorm2d(8),
-            # nn.ReLU(),
-            # init_(nn.Conv2d(8, 8, kernel_size=5, stride=1)),
-            # nn.BatchNorm2d(8),
+        self.encoder = nn.Sequential(
+            init_(nn.Conv2d(2, 4, kernel_size=5, stride=1)),
+            nn.BatchNorm2d(4),
+            nn.ReLU(),
+            init_(nn.Conv2d(4, 4, kernel_size=7, stride=1)),
+            nn.BatchNorm2d(4),
+            nn.ReLU(),
+            init_(nn.Conv2d(4, 4, kernel_size=7, stride=1)),
+            nn.BatchNorm2d(4),
             Flatten(),
-            init_(nn.Linear(2 * 32 * 32, hidden_size)),
+            init_(nn.Linear(1024, hidden_size)),
             nn.Tanh()
         ).to(device=device)
 
@@ -93,7 +93,6 @@ class DeepCognitiveMapper(NNBase):
     def combine_maps(self, previous_map, map_update, eps=1e-6):
         updated_map = previous_map
 
-        # for i in range(map_update.shape[0]):
         updated_confidence = (map_update[:, 1, :, :] + previous_map[:, 1, :, :] + eps)
         updated_free_space_map = (map_update[:, 0, :, :] * map_update[:, 1, :, :] + previous_map[:, 0, :, :]\
             * previous_map[:, 1, :, :]) / updated_confidence
@@ -122,15 +121,7 @@ class DeepCognitiveMapper(NNBase):
             
         new_map = self.combine_maps(previous_map,map_update)
 
-        # (inputs[:, 0:3, :, :] / 255)
-        x = self.main(new_map)
-        # # print(x.size())
-
-        # if self.is_recurrent:
-        #     x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
-
-
-
+        x = self.encoder(new_map)
 
         if DEBUG:
             fig, (ax1, ax2, ax3,ax4) = plt.subplots(4)
