@@ -78,6 +78,8 @@ def main():
     rollouts.to(device)
 
     episode_rewards = deque(maxlen=100)
+    value_losses = deque(maxlen=100)
+    action_losses = deque(maxlen=100)
 
     start = time.time()
     for j in range(num_updates):
@@ -116,7 +118,8 @@ def main():
         rollouts.compute_returns(next_value, args.use_gae, args.gamma, args.tau)
 
         value_loss, action_loss, dist_entropy = agent.update(rollouts)
-
+        value_losses.append(value_loss)
+        action_losses.append(action_loss)
         rollouts.after_update()
 
         if j % args.save_interval == 0:
@@ -145,7 +148,7 @@ def main():
                 episode_rewards = [float(ep) for ep in episode_rewards]
 
             message="Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.2f}/{:.2f}, " \
-                    "min/max reward {:.2f}/{:.2f}, success rate {:.2f}\n".format(
+                    "min/max reward {:.2f}/{:.2f}, success rate {:.2f}, value_loss{:4f},action_loss{:4f} \n".format(
                     j, total_num_steps,
                     int(total_num_steps / (end - start)),
                     len(episode_rewards),
@@ -153,7 +156,9 @@ def main():
                     np.median(episode_rewards),
                     np.min(episode_rewards),
                     np.max(episode_rewards),
-                    np.count_nonzero(np.greater(episode_rewards, 0)) / len(episode_rewards)
+                    np.count_nonzero(np.greater(episode_rewards, 0)) / len(episode_rewards),
+                    np.mean(value_losses),
+                    np.mean(action_losses),
                 )
             logging.info(message)
             print(message)
@@ -187,6 +192,7 @@ def main():
             eval_masks = torch.zeros(args.num_processes, 1, device=device)
 
             while len(eval_episode_rewards) < 10:
+                pdb.set_trace()
                 with torch.no_grad():
                     _, action, _, eval_recurrent_hidden_states = actor_critic.act(
                         obs, eval_recurrent_hidden_states, eval_masks, deterministic=True)
@@ -200,10 +206,13 @@ def main():
 
             eval_envs.close()
 
-            print(" Evaluation using {} episodes: mean reward {:.5f}\n".format(
+            message=" Evaluation using {} episodes: mean reward {:.5f}\n".format(
                 len(eval_episode_rewards),
                 np.mean(eval_episode_rewards)
-            ))
+            )
+            logging.info(message)
+            print(message)
+            logger_tb.add_losses({'eval mean reward ': np.mean(eval_episode_rewards)})
 
         """
         if args.vis and j % args.vis_interval == 0:

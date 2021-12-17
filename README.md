@@ -112,7 +112,7 @@ python3 main.py --algo ppo --num-frames 5000000 --num-processes 16 --num-steps 8
 Then, to visualize the results of training, you can run the following command. Note that you can do this while the training process is still running. Also note that if you are running this through SSH, you will need to enable X forwarding to get a display:
 
 ```
-python3 enjoy.py --env-name MiniWorld-Hallway-v0 --load-dir trained_models/ppo
+python3 enjoy.py --env-name MiniWorld-Hallway-v0 --load-path trained_models/base/2021XXXX/MiniWorld-Hallway-v0-stepX.pt
 ```
 
 ### Offscreen Rendering
