@@ -82,7 +82,7 @@ class DeepCognitiveMapper(NNBase):
             affine_matrices.append(affine_matrix[0:2,:])
 
             
-        T = torch.Tensor(affine_matrices)
+        T = torch.Tensor(affine_matrices).to(device)
         
         grid = F.affine_grid(T, previous_map.size())
         
