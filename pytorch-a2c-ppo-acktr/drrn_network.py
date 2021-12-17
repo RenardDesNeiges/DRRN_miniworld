@@ -37,31 +37,22 @@ class DeepCognitiveMapper(NNBase):
             nn.ReLU(),
             nn.ConvTranspose2d(8, 2, 2, padding=(2, 0), stride=2),
             nn.Sigmoid(),
-        )
-        
+        ).to(device=device)
 
         # For 80x60 input
         self.main = nn.Sequential(
-            init_(nn.Conv2d(3, 32, kernel_size=5, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
-            init_(nn.Conv2d(32, 32, kernel_size=5, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
-            init_(nn.Conv2d(32, 32, kernel_size=4, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
-            # Print(),
+            # init_(nn.Conv2d(2, 4, kernel_size=5, stride=1)),
+            # nn.BatchNorm2d(4),
+            # nn.ReLU(),
+            # init_(nn.Conv2d(4, 8, kernel_size=5, stride=1)),
+            # nn.BatchNorm2d(8),
+            # nn.ReLU(),
+            # init_(nn.Conv2d(8, 8, kernel_size=5, stride=1)),
+            # nn.BatchNorm2d(8),
             Flatten(),
-
-            # nn.Dropout(0.2),
-
-            init_(nn.Linear(32 * 7 * 5, hidden_size)),
-            nn.ReLU()
-        )
+            init_(nn.Linear(2 * 32 * 32, hidden_size)),
+            nn.Tanh()
+        ).to(device=device)
 
         init_ = lambda m: init(m,
                                nn.init.orthogonal_,
@@ -131,7 +122,8 @@ class DeepCognitiveMapper(NNBase):
 
         new_map = self.combine_maps(previous_map,map_update)
 
-        x = self.main((inputs[:, 0:3, :, :] / 255))
+        # (inputs[:, 0:3, :, :] / 255)
+        x = self.main(new_map)
         # # print(x.size())
 
         # if self.is_recurrent:
