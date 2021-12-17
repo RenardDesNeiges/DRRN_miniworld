@@ -87,7 +87,7 @@ class DeepCognitiveMapper(NNBase):
             else:
                 affine_matrix = (Affine2D().rotate_around(0,0, t[i]) + Affine2D().translate(
                                 tx=x[i], ty=y[i])).get_matrix()
-                print(affine_matrix)
+                                
             affine_matrices.append(affine_matrix[0:2,:])
 
             
@@ -126,7 +126,7 @@ class DeepCognitiveMapper(NNBase):
         x = torch.concat(rep, 1)  # concatenated mid level representations
 
         map_update = self.decoder(x)
-        previous_map = rnn_hxs.reshape((1,2,32,32))
+        previous_map = rnn_hxs.reshape((inputs.shape[0],2,32,32))
         previous_map = self.egomotion_transform(previous_map,egomotion)
 
         new_map = self.combine_maps(previous_map,map_update)
