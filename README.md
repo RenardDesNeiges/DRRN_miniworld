@@ -18,6 +18,7 @@ Requirements:
 - Pyglet (OpenGL 3D graphics)
 - pytorch, torchvision
 - tensorboard
+- matplotlib
 - visualpriors
 - GPU for 3D graphics acceleration (optional)
 
@@ -26,9 +27,12 @@ We recommend using conda to manage the environment (the installation is still a 
 ```
 conda create --name cuda_miniworld
 conda activate cuda_world
+pip install pyglet --user
 python setup.py install
 pip install -e .
 conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+conda install matplotlib
+conda install tensorboard
 pip install visualpriors
 ```
 
