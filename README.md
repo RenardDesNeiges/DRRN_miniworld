@@ -17,6 +17,7 @@ Requirements:
 - NumPy
 - Pyglet (OpenGL 3D graphics)
 - pytorch, torchvision
+- tensorboard
 - visualpriors
 - GPU for 3D graphics acceleration (optional)
 
@@ -57,7 +58,7 @@ PYOPENGL_PLATFORM=egl python3 main.py --algo ppo --num-frames 5000000 --num-proc
 To train the agents use :
 
 ```
-python3 main.py --algo ppo --num-frames 5000000 --num-processes 16 --num-steps 80 --lr 0.00005 --env-name MiniWorld-Hallway-v0
+PYOPENGL_PLATFORM=egl python pytorch-a2c-ppo-acktr/main.py --num-frames 5000000 --env-name MiniWorld-FourRooms-v0 --midlevel-rep-names keypoints2d --feature-type drrn --log-interval 1 --num-steps 80 --lr 0.00005
 ```
 
 Then, to visualize the results of training :
