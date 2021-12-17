@@ -17,8 +17,8 @@ from matplotlib.transforms import Affine2D
 
 
 class DeepCognitiveMapper(NNBase):
-    def __init__(self, num_inputs, mid_level_reps, recurrent=True, hidden_size=2048):
-        super(DeepCognitiveMapper, self).__init__(recurrent, hidden_size, hidden_size)
+    def __init__(self, num_inputs, mid_level_reps, recurrent=True, hidden_size=128):
+        super(DeepCognitiveMapper, self).__init__(recurrent, MAP_DIMENSIONS * MAP_DIMENSIONS * MAP_SIZE, hidden_size)
 
         self.mid_level_reps = mid_level_reps
 
@@ -37,27 +37,22 @@ class DeepCognitiveMapper(NNBase):
             nn.ReLU(),
             nn.ConvTranspose2d(8, 2, 2, padding=(2, 0), stride=2),
             nn.Sigmoid(),
-        )
-        
+        ).to(device=device)
 
         # For 80x60 input
         self.main = nn.Sequential(
-            init_(nn.Conv2d(2, 32, kernel_size=5, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            
-            init_(nn.Conv2d(32, 32, kernel_size=4, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
-            # Print(),
+            # init_(nn.Conv2d(2, 4, kernel_size=5, stride=1)),
+            # nn.BatchNorm2d(4),
+            # nn.ReLU(),
+            # init_(nn.Conv2d(4, 8, kernel_size=5, stride=1)),
+            # nn.BatchNorm2d(8),
+            # nn.ReLU(),
+            # init_(nn.Conv2d(8, 8, kernel_size=5, stride=1)),
+            # nn.BatchNorm2d(8),
             Flatten(),
-
-            # nn.Dropout(0.2),
-
-            init_(nn.Linear(32 * 7 * 5, hidden_size)),
-            nn.ReLU()
-        )
+            init_(nn.Linear(2 * 32 * 32, hidden_size)),
+            nn.Tanh()
+        ).to(device=device)
 
         init_ = lambda m: init(m,
                                nn.init.orthogonal_,
@@ -96,7 +91,6 @@ class DeepCognitiveMapper(NNBase):
         return update
     
     def combine_maps(self, previous_map, map_update, eps=1e-6):
-    
         updated_map = previous_map
 
         for i in range(map_update.shape[0]):
@@ -125,9 +119,22 @@ class DeepCognitiveMapper(NNBase):
         previous_map = rnn_hxs.reshape((inputs.shape[0],2,32,32))
         previous_map = self.egomotion_transform(previous_map,egomotion)
 
-        new_map = self.combine_maps(previous_map,map_update)
+        with torch.no_grad():
+            new_map = self.combine_maps(previous_map,map_update)
 
+<<<<<<< HEAD
         x = self.main((inputs[:, 0:3, :, :] / 255))
+=======
+        # (inputs[:, 0:3, :, :] / 255)
+        x = self.main(new_map)
+        # # print(x.size())
+
+        # if self.is_recurrent:
+        #     x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
+
+
+
+>>>>>>> aa223db0105d16094c24b96bd00fc4e65f0de6da
 
         if DEBUG:
             fig, (ax1, ax2, ax3,ax4) = plt.subplots(4)
