@@ -17,8 +17,8 @@ from matplotlib.transforms import Affine2D
 
 
 class DeepCognitiveMapper(NNBase):
-    def __init__(self, num_inputs, mid_level_reps, recurrent=True, hidden_size=2048):
-        super(DeepCognitiveMapper, self).__init__(recurrent, hidden_size, hidden_size)
+    def __init__(self, num_inputs, mid_level_reps, recurrent=True, hidden_size=128):
+        super(DeepCognitiveMapper, self).__init__(recurrent, MAP_DIMENSIONS * MAP_DIMENSIONS * MAP_SIZE, hidden_size)
 
         self.mid_level_reps = mid_level_reps
 
@@ -91,7 +91,6 @@ class DeepCognitiveMapper(NNBase):
         return update
     
     def combine_maps(self, previous_map, map_update, eps=1e-6):
-    
         updated_map = previous_map
 
         for i in range(map_update.shape[0]):
@@ -120,7 +119,8 @@ class DeepCognitiveMapper(NNBase):
         previous_map = rnn_hxs.reshape((inputs.shape[0],2,32,32))
         previous_map = self.egomotion_transform(previous_map,egomotion)
 
-        new_map = self.combine_maps(previous_map,map_update)
+        with torch.no_grad():
+            new_map = self.combine_maps(previous_map,map_update)
 
         # (inputs[:, 0:3, :, :] / 255)
         x = self.main(new_map)

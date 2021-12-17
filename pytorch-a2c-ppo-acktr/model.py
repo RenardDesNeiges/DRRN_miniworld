@@ -16,6 +16,7 @@ class NNBase(nn.Module):
 
         self._hidden_size = hidden_size
         self._recurrent = recurrent
+        self._recurrent_input_size = recurrent_input_size
 
         if recurrent:
             self.gru = nn.GRUCell(recurrent_input_size, hidden_size)
@@ -31,7 +32,7 @@ class NNBase(nn.Module):
     @property
     def recurrent_hidden_state_size(self):
         if self._recurrent:
-            return self._hidden_size
+            return self._recurrent_input_size
         return 1
 
     @property
