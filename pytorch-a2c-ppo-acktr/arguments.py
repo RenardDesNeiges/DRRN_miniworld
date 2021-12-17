@@ -9,7 +9,7 @@ def get_args():
                         help='algorithm to use: a2c | ppo | acktr')
     parser.add_argument('--feature-type', default='drrn',
                         help='feature type to use: base | midlevel_base | actual_map_drrn | supervised_map_drrn | drrn')
-    parser.add_argument('--midlevel-rep-names', default=['keypoints2d','edge_texture','autoencoding'])
+    parser.add_argument('--midlevel-rep-names', default=['keypoints2d'])
     parser.add_argument('--lr', type=float, default=0.00005,
                         help='learning rate')
     parser.add_argument('--eps', type=float, default=1e-5,
