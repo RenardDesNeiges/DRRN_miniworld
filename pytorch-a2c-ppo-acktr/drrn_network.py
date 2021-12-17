@@ -93,12 +93,13 @@ class DeepCognitiveMapper(NNBase):
     def combine_maps(self, previous_map, map_update, eps=1e-6):
         updated_map = previous_map
 
-        for i in range(map_update.shape[0]):
-            updated_confidence = (map_update[i, 1, :, :] + previous_map[i, 1, :, :] + eps)
-            updated_free_space_map = (map_update[i, 0, :, :] * map_update[i, 1, :, :] + previous_map[i, 0, :, :] * previous_map[i, 1, :, :]) / updated_confidence
-            updated_confidence = torch.unsqueeze(updated_confidence, dim=0)
-            updated_free_space_map = torch.unsqueeze(updated_free_space_map, dim=0)
-            updated_map[i, :, :, :] = torch.cat([updated_free_space_map, updated_confidence], dim=0)
+        # for i in range(map_update.shape[0]):
+        updated_confidence = (map_update[:, 1, :, :] + previous_map[:, 1, :, :] + eps)
+        updated_free_space_map = (map_update[:, 0, :, :] * map_update[:, 1, :, :] + previous_map[:, 0, :, :]\
+            * previous_map[:, 1, :, :]) / updated_confidence
+        updated_confidence = torch.unsqueeze(updated_confidence, dim=1)
+        updated_free_space_map = torch.unsqueeze(updated_free_space_map, dim=1)
+        updated_map= torch.cat([updated_free_space_map, updated_confidence], dim=1)
         
         return updated_map
 
@@ -118,13 +119,9 @@ class DeepCognitiveMapper(NNBase):
         map_update = self.decoder(x)
         previous_map = rnn_hxs.reshape((inputs.shape[0],2,32,32))
         previous_map = self.egomotion_transform(previous_map,egomotion)
+            
+        new_map = self.combine_maps(previous_map,map_update)
 
-        with torch.no_grad():
-            new_map = self.combine_maps(previous_map,map_update)
-
-<<<<<<< HEAD
-        x = self.main((inputs[:, 0:3, :, :] / 255))
-=======
         # (inputs[:, 0:3, :, :] / 255)
         x = self.main(new_map)
         # # print(x.size())
@@ -134,7 +131,6 @@ class DeepCognitiveMapper(NNBase):
 
 
 
->>>>>>> aa223db0105d16094c24b96bd00fc4e65f0de6da
 
         if DEBUG:
             fig, (ax1, ax2, ax3,ax4) = plt.subplots(4)
