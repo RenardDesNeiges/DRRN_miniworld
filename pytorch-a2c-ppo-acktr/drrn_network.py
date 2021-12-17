@@ -113,7 +113,7 @@ class DeepCognitiveMapper(NNBase):
         rep = []
         for feature in self.mid_level_reps:
             rep.append(visualpriors.representation_transform(x, feature, device=device))
-        x = torch.concat(rep, 1)  # concatenated mid level representations
+        x = torch.cat(rep, 1)  # concatenated mid level representations
 
         map_update = self.decoder(x)
         previous_map = rnn_hxs.reshape((inputs.shape[0],2,32,32))
