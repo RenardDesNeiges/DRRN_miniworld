@@ -42,14 +42,10 @@ class DeepCognitiveMapper(NNBase):
 
         # For 80x60 input
         self.main = nn.Sequential(
-            init_(nn.Conv2d(3, 32, kernel_size=5, stride=2)),
+            init_(nn.Conv2d(2, 32, kernel_size=5, stride=2)),
             nn.BatchNorm2d(32),
             nn.ReLU(),
-
-            init_(nn.Conv2d(32, 32, kernel_size=5, stride=2)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
+            
             init_(nn.Conv2d(32, 32, kernel_size=4, stride=2)),
             nn.BatchNorm2d(32),
             nn.ReLU(),
@@ -132,13 +128,6 @@ class DeepCognitiveMapper(NNBase):
         new_map = self.combine_maps(previous_map,map_update)
 
         x = self.main((inputs[:, 0:3, :, :] / 255))
-        # # print(x.size())
-
-        # if self.is_recurrent:
-        #     x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
-
-
-
 
         if DEBUG:
             fig, (ax1, ax2, ax3,ax4) = plt.subplots(4)
