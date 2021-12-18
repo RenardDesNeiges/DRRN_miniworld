@@ -2,7 +2,7 @@
 
 Vision based RL agent for object navigation using deep cognitive mapping[see, https://arxiv.org/abs/1702.03920] and visual priors [see, https://arxiv.org/abs/1912.11121].
 
-The simulation environment is gym-miniworld [https://github.com/maximecb/gym-miniworld].
+The simulation environment is gym-miniworld [https://github.com/maximecb/gym-miniworld]. The gym-miniworld documentation is accessible here [https://github.com/RenardDesNeiges/DRRN_miniworld/tree/main/docs].
 
 The RL environment is pytorch-a2c-ppo-acktr [https://github.com/ikostrikov/pytorch-a2c-ppo-acktr-gail].
 
@@ -70,3 +70,4 @@ Then, to visualize the results of training :
 ```
 python3 enjoy.py --env-name MiniWorld-Hallway-v0 --load-path trained_models/base/2021XXXX/MiniWorld-Hallway-v0-stepX.pt
 ```
+
