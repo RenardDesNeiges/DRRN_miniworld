@@ -1,7 +1,6 @@
 import copy
 import glob
 import os
-import pdb
 import time
 import types
 from collections import deque
@@ -35,7 +34,6 @@ if args.cuda:
 
 tf_dir =os.path.normpath(
     make_path(os.path.join("trained_models", args.feature_type+datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
-#pdb.set_trace()
 _ = create_logger(tf_dir)
 logger_tb = Logger_tensorboard(tf_dir, use_tensorboard=True)
 
@@ -193,7 +191,6 @@ def main():
             eval_masks = torch.zeros(args.num_processes, 1, device=device)
 
             while len(eval_episode_rewards) < 10:
-                pdb.set_trace()
                 with torch.no_grad():
                     _, action, _, eval_recurrent_hidden_states = actor_critic.act(
                         obs, eval_recurrent_hidden_states, eval_masks, deterministic=True)

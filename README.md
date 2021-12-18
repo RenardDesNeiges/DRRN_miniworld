@@ -1,10 +1,12 @@
 # Deep Robust Drone Navigation With Deep Cognitive Mapping and Visual Priors
 
-Vision based RL agent for object navigation using deep cognitive mapping[see, https://arxiv.org/abs/1702.03920] and visual priors [see, https://arxiv.org/abs/1912.11121].
+Vision based RL agent for object navigation using deep cognitive mapping(see, [Sax et al. 2019](https://arxiv.org/abs/1702.03920)) and visual priors (see, [Gupta et al. 2017](https://arxiv.org/abs/1912.11121)).
 
-The simulation environment is gym-miniworld [https://github.com/maximecb/gym-miniworld]. The gym-miniworld documentation is accessible here [https://github.com/RenardDesNeiges/DRRN_miniworld/tree/main/docs].
+The simulation environment is [gym-miniworld](https://github.com/maximecb/gym-miniworld). The gym-miniworld available environments [are listed here](docs/environments.md),  [a design tutorial](docs/design.md) is also available here, [as well as a troubleshooting guide](docs/troubleshooting.md).
 
-The RL environment is pytorch-a2c-ppo-acktr [https://github.com/ikostrikov/pytorch-a2c-ppo-acktr-gail].
+The RL environment is [pytorch-a2c-ppo-acktr](https://github.com/ikostrikov/pytorch-a2c-ppo-acktr-gail).
+
+Our experiments are listed (and the exact arguments specified) [here](docs/experiments.md).
 
 This is a project for the course *"Visual Intelligence, Machines and Minds"* (CS-503) at EPFL. By the team of Umer Hasan, Yongtao Wu and Titouan Renard. 
 
@@ -68,6 +70,6 @@ PYOPENGL_PLATFORM=egl python pytorch-a2c-ppo-acktr/main.py --num-frames 5000000 
 Then, to visualize the results of training :
 
 ```
-python3 enjoy.py --env-name MiniWorld-Hallway-v0 --load-path trained_models/base/2021XXXX/MiniWorld-Hallway-v0-stepX.pt
+python3 pytorch-a2c-ppo-acktr/enjoy.py --env-name MiniWorld-Hallway-v0 --load-path trained_models/base/2021XXXX/MiniWorld-Hallway-v0-stepX.pt
 ```
 
