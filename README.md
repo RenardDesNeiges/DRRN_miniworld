@@ -25,7 +25,7 @@ Requirements:
 We recommend using conda to manage the environment (the installation is still a bit messy).
 
 ```
-conda create --name cuda_miniworld
+conda create --name cuda_miniworld python=3.9.7
 conda activate cuda_world
 pip install pyglet --user
 python setup.py install
