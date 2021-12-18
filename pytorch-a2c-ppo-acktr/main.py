@@ -34,7 +34,8 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
 tf_dir =os.path.normpath(
-    make_path(os.path.join("../trained_models", args.feature_type,datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
+    make_path(os.path.join("trained_models", args.feature_type+datetime.datetime.now().strftime("%Y%m%d%H%M%S"))))
+#pdb.set_trace()
 _ = create_logger(tf_dir)
 logger_tb = Logger_tensorboard(tf_dir, use_tensorboard=True)
 
