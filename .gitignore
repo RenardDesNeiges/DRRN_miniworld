@@ -109,6 +109,6 @@ venv.bak/
 .mypy_cache/
 .travis.yml
 .vscode/launch.json
-trained_models/
-trained_models/ppo/
+# trained_models/
+# trained_models/ppo/
 trained_models/ppo/MiniWorld-Hallway-v0.pt
