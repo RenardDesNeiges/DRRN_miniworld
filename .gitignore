@@ -215,3 +215,4 @@ trained_models/drrn_12_20_01_10log_tb/events.out.tfevents.1639959041.Bourgeoisie
 trained_models/drrn_12_20_01_13log_tb/events.out.tfevents.1639959207.BourgeoisieCool.local.94712.0
 .gitignore
 .gitignore
+gym_miniworld/envs/fourrooms.py
