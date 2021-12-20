@@ -58,7 +58,7 @@ class FourRooms(MiniWorldEnv):
             reward += self._reward()
             done = True
             
-        dist_rew = np.linalg.norm(super().agent.pos - self.box)/100
+        dist_rew = np.linalg.norm(self.agent.pos - self.box)/100
         
         reward += dist_rew
 
