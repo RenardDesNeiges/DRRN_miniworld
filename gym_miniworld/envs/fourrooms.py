@@ -57,5 +57,9 @@ class FourRooms(MiniWorldEnv):
         if self.near(self.box):
             reward += self._reward()
             done = True
+            
+        dist_rew = np.linalg.norm(super().agent.pos - self.box)/100
+        
+        reward += dist_rew
 
         return obs, reward, done, info

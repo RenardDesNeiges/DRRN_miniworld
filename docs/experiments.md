@@ -10,4 +10,4 @@
 `PYOPENGL_PLATFORM=egl python pytorch-a2c-ppo-acktr/main.py --num-frames 2000000 --env-name MiniWorld-FourRooms-v0 --feature-type drrn --log-interval 10 --lr 0.00005` 
 `PYOPENGL_PLATFORM=egl python pytorch-a2c-ppo-acktr/main.py --num-frames 2000000 --env-name MiniWorld-FourRooms-v0 --feature-type drrn --log-interval 10 --lr 0.00001 --save-interval 10` 
 
-`PYOPENGL_PLATFORM=egl python pytorch-a2c-ppo-acktr/main.py --num-frames 2000000 --env-name MiniWorld-FourRooms-v0 --feature-type drrn --log-interval 10 --lr 0.0000001 --save-interval 100 --num-processes 32 --num-processes 8` 
+`PYOPENGL_PLATFORM=egl python pytorch-a2c-ppo-acktr/main.py --num-frames 2000000 --env-name MiniWorld-FourRooms-v0 --feature-type drrn --log-interval 10 --lr 0.0000001 --save-interval 100 --num-processes 32 --num-minibatch 8` 
