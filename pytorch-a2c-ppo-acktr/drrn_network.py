@@ -124,14 +124,28 @@ class DeepCognitiveMapper(NNBase):
         x = self.encoder(new_map)
 
         if DEBUG:
+            plt.close('all')
             fig, (ax1, ax2, ax3,ax4) = plt.subplots(4)
             ax1.imshow(map_update.permute(2,3,1,0)[:,:,1,0])
             ax2.imshow(rnn_hxs.reshape((1,2,32,32)).permute(2,3,1,0)[:,:,1,0])
             ax3.imshow(new_map.permute(2,3,1,0)[:,:,1,0])
             ax4.imshow(egomotion)
+            plt.show(block=False)
 
 
         rnn_hs = self.flatten(new_map)
+
+
+
+
+
+
+
+
+
+
+
+
         return self.critic_linear(x), x, rnn_hs
 
 

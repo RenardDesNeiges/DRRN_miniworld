@@ -105,7 +105,7 @@ def main():
             for idx, eps_done in enumerate(done):
                 
                 if eps_done:
-                    episode_rewards.append(rew_tot[idx])
+                    episode_rewards.append(rew_tot[idx]/step)
 
 
 
