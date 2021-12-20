@@ -90,16 +90,12 @@ class YMaze(MiniWorldEnv):
             reward += self._reward()
             done = True
         info['goal_pos'] = self.box.pos
-
-
         if self.step_count!=1 and np.linalg.norm(self.agent.pos - self.box.pos)+1e-6 < np.linalg.norm(self.pre_pos - self.box.pos):
             dist_rew = 0.001
         else:
             dist_rew = 0
         self.pre_pos = self.agent.pos
         reward += dist_rew
-
-
         return obs, reward, done, info
 
 class YMazeLeft(YMaze):
