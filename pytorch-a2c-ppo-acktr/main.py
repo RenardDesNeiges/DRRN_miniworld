@@ -82,6 +82,7 @@ def main():
 
     start = time.time()
     for j in range(num_updates):
+        rew_tot = 0
         for step in range(args.num_steps):
             # Sample actions
             with torch.no_grad():
@@ -92,18 +93,21 @@ def main():
 
             # Obser reward and next obs
             obs, reward, done, infos = envs.step(action)
-
+            rew_tot += reward
             """
             for info in infos:
                 if 'episode' in info.keys():
                     print(reward)
                     episode_rewards.append(info['episode']['r'])
             """
-
+            
             # FIXME: works only for environments with sparse rewards
             for idx, eps_done in enumerate(done):
+                
                 if eps_done:
-                    episode_rewards.append(reward[idx])
+                    episode_rewards.append(rew_tot[idx])
+
+
 
             # If done then clean the history of observations.
             masks = torch.FloatTensor([[0.0] if done_ else [1.0] for done_ in done])
