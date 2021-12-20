@@ -162,7 +162,7 @@ def main():
             logging.info(message)
             print(message)
             logger_tb.add_losses({'mean reward ': np.mean(episode_rewards),
-                                  " success rate":np.count_nonzero(np.greater(episode_rewards, 0)) / len(episode_rewards)
+                                  " success rate":np.count_nonzero(np.greater(episode_rewards, 0.1)) / len(episode_rewards)
                                   }, total_num_steps)
 
         if args.eval_interval is not None and len(episode_rewards) > 1 and j % args.eval_interval == 0:
